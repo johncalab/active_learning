@@ -9,9 +9,9 @@ dependencies = [
 ]
 
 setup(
-    name="john_stuff",
+    name="bald_stuff",
     version="0.1",
     author="ActuallyOpenAI",
-    packages=find_packages(include="john"),
+    packages=find_packages(include="bald"),
     install_requires=dependencies,
 )

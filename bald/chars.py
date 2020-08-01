@@ -2,7 +2,7 @@ from string import printable
 from torch import nn
 import torch.nn.functional as F
 
-from john.convseq import ConvSeq
+from bald.convseq import ConvSeq
 
 class CharVocab:
     """

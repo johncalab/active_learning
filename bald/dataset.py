@@ -2,10 +2,10 @@ from typing import List, Dict
 import torch
 from torch.utils.data import Dataset
 
-from .chars import CharVocab
-from .words import WordVocab
+from bald.chars import CharVocab
+from bald.words import WordVocab
 
-def load_conll(path: str,make_lower=False) -> List[Dict[str]]:
+def load_conll(path: str,make_lower=False) -> List[Dict[str,List[str]]]:
     """
     Read the conll dataset and make sense of it.
 
@@ -45,15 +45,16 @@ def load_conll(path: str,make_lower=False) -> List[Dict[str]]:
 
     return sentences
 
-
 class ConllDataset(Dataset):
     def __init__(
         self,
-        data_path: str, 
-        char_vocab: CharVocab, 
+        data_path: str,
+        char_vocab: CharVocab,
         word_vocab: WordVocab,
     ):
-        self.data = load_ner_dataset(data_path,make_lower=False)
+        self.data = load_conll(path)
+        self.char_vocab = char_vocab
+        self.word_vocab = word_vocab
 
         self.encoding = {
             'O':0,
@@ -68,45 +69,54 @@ class ConllDataset(Dataset):
         }
         self.num_labels = len(set(self.encoding.values()))
 
-        self.max_seq_len = self.compute_max_seq_len()
-        self.vectors = vectors
-        self.emb_dim = emb_dim
-
-    def compute_max_seq_len(self):
-        return max(len(d["tag"]) for d in self.data)
-
-    def set_max_seq_len(self,val: int):
-        assert val > 0
-        self.max_seq_len = val
-
-    def word_to_char_ids(self, word: str) -> List[str]:
-        id_seq = [self.char_vocab.token_to_index[c] for c in word]
-        return torch.tensor(id_seq)
-
     def __len__(self):
         return len(self.data)
+        
+    def word_to_char_ids(self, word: str) -> List[str]:
+        return [self.char_vocab.get_index(c) for c in word]
+        
+    def pad_chars(self,list_of_seqs: List[List[int]]) -> List[List[int]]:
+        seq_len = max([len(seq) for seq in list_of_seqs])
+        pad_token = self.char_vocab.pad
+        pad_index = self.char_vocab.get_index(pad_token)
 
+        new_list = []
+        for seq in list_of_seqs:
+            rest = seq_len - len(seq)
+            new_seq = seq[:] + [pad_index]*rest
+            new_list.append(new_seq)
+
+        return new_list
+        
     def __getitem__(self,i):
         sample = self.data[i]
+        
         word_seq = sample["text"]
-        tag_seq = sample["tag"]
         char_seq = [self.word_to_char_ids(w) for w in word_seq]
 
+        word_seq = [self.word_vocab.get_index(w) for w in word_seq]
+        word_seq = torch.tensor(word_seq)
+
+        char_seq = self.pad_chars(char_seq)
+        char_seq = [torch.tensor(w) for w in char_seq]
+        char_seq = torch.stack(char_seq)
+
+        tag_seq = sample["tag"]
+        tag_seq = [self.encoding[tag] for tag in tag_seq]
+        tag_seq = torch.tensor(tag_seq)
+                
+        return {"word":word_seq, "char":char_seq, "tag":tag_seq}
+
+if __name__=="__main__":
+    from bald import conll_path, vectors_path
+    from torchnlp.word_to_vector import GloVe
+    path = conll_path / "eng.testa"
+    char_vocab = CharVocab()
+    vectors = GloVe(cache=vectors_path)
+    word_vocab = WordVocab(vectors=vectors)
+    d = ConllDataset(data_path=path, char_vocab=char_vocab, word_vocab=word_vocab)
+    it = d.__getitem__(3)
+    for key in it:
+        print(it[key].size())
 
 
-
-        x_seq = sample["text"]
-        y_seq = sample["tag"]
-
-        x_seq = [self.vectors[tok] for tok in x_seq]
-        rest = self.max_seq_len - len(x_seq)
-        assert rest >= 0
-        x_seq.extend([torch.zeros(self.emb_dim) for _ in range(rest)])
-        x_seq = torch.stack(x_seq)
-
-        y_seq = [self.encoding[tok] for tok in y_seq]
-        y_seq.extend([0 for _ in range(rest)])
-        assert len(y_seq) == self.max_seq_len
-        y_seq = torch.tensor(y_seq)
-
-        return x_seq,y_seq

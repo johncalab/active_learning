@@ -2,10 +2,10 @@ import torch
 from torch import nn
 import torch.nn.functional as F
 
-from john.convseq import ConvSeq
+from bald.convseq import ConvSeq
 
 class WordVocab:
-    def __init__(self,vectors,emb_dim=None):
+    def __init__(self,vectors):
         self.token_to_index = {}
         self.index_to_token = {}
         self.token_to_vector = {}
@@ -37,6 +37,12 @@ class WordVocab:
             return self.token_to_index[token]
         else:
             return self.token_to_index[self.unk]
+
+    def get_vector(self,token: str) -> int:
+        if token in self.token_to_vector:
+            return self.token_to_vector[token]
+        else:
+            return self.token_to_vector[self.unk]
 
     def get_token(self,j: int) -> str:
         if j in self.index_to_token.keys():

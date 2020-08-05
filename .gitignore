@@ -2,7 +2,7 @@
 __pycache__
 venv
 **.egg**
-**.ipynb
+**.ipynb**
 
 .word_vectors_cache
 .data

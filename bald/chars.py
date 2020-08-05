@@ -1,4 +1,5 @@
 from string import printable
+import torch
 from torch import nn
 import torch.nn.functional as F
 
@@ -134,7 +135,6 @@ class CharEncoder(nn.Module):
         return x
 
 if __name__=="__main__":
-    import torch
     vocab = CharVocab()
 
     m = CharEncoder(

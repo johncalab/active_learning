@@ -19,7 +19,7 @@ class CharVocab:
         self.index_to_token = {}
 
         self.pad = "<PAD>"
-        self.add_token(self.pad)
+        self.pad_idx = self.add_token(self.pad)
         self.unk = "<UNK>"
         self.add_token(self.unk)
         self.bos = "<BOS>"

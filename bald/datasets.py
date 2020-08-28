@@ -2,31 +2,19 @@ from typing import List, Dict
 import torch
 from torch.utils.data import Dataset
 
-from bald.chars import CharVocab
-from bald.words import WordVocab
+from bald.const import conll_encoding
+from bald.vectorizers import ConllVectorizer
 
 class ConllDataset(Dataset):
     def __init__(
         self,
         data_path: str,
-        char_vocab: CharVocab,
-        word_vocab: WordVocab,
+        vzr: ConllVectorizer,
     ):
         self.data = self.load_conll(data_path)
-        self.char_vocab = char_vocab
-        self.word_vocab = word_vocab
+        self.vzr = vzr
 
-        self.encoding = {
-            'O':0,
-            'B-PER':1,
-            'I-PER':1,
-            'B-ORG':2,
-            'I-ORG':2,
-            'B-LOC':3,
-            'I-LOC':3,
-            'B-MISC':4,
-            'I-MISC':4,
-        }
+        self.encoding = conll_encoding
         self.num_labels = len(set(self.encoding.values()))
 
     def load_conll(self, path: str,make_lower=False) -> List[Dict[str,List[str]]]:
@@ -72,32 +60,15 @@ class ConllDataset(Dataset):
     def __len__(self):
         return len(self.data)
         
-    def word_to_char_ids(self, word: str) -> List[str]:
-        return [self.char_vocab.get_index(c) for c in word]
-        
-    def pad_chars(self,list_of_seqs: List[List[int]]) -> List[List[int]]:
-        seq_len = max([len(seq) for seq in list_of_seqs])
-        pad_token = self.char_vocab.pad
-        pad_index = self.char_vocab.get_index(pad_token)
-
-        new_list = []
-        for seq in list_of_seqs:
-            rest = seq_len - len(seq)
-            new_seq = seq[:] + [pad_index]*rest
-            new_list.append(new_seq)
-
-        return new_list
-        
     def __getitem__(self,i: int) -> dict:
         sample = self.data[i]
 
         tag_seq = sample["tag"]
         tag_seq = [self.encoding[tag] for tag in tag_seq]
-        word_seq = sample["text"]
-        char_seq = [self.word_to_char_ids(w) for w in word_seq]
-        word_seq = [self.word_vocab.get_index(w) for w in word_seq]
+        seq = sample["text"]
+        v = self.vzr.vectorize(seq)
 
-        return {"word":word_seq, "char":char_seq, "tag":tag_seq}
+        return {"word":v["word"], "char":v["char"], "tag":tag_seq}
 
 def collate_conll(batch: dict,word_pad: int,char_pad: int,tag_pad: int):
     """

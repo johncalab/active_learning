@@ -15,7 +15,7 @@ class LinearDecoder(nn.Module):
     ):
         super().__init__()
 
-    self.fc = nn.Linear(in_dim,num_tags)
+        self.fc = nn.Linear(in_dim,num_tags)
 
     def forward(self,x):
         return self.fc(x)

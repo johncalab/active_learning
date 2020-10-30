@@ -1,0 +1,7 @@
+jupyterlab
+torch
+torchvision
+datasets
+matplotlib
+sklearn
+tensorflow

@@ -9,20 +9,43 @@ from bald.archs import BasicPaper
 from bald.evals import ner_loss, conll_evaluate, conll_score
 from bald.const import num_labels_with_pad
 
+artifact_path = 'art.txt'
+def log_this(vzr,model):
+    seq = [
+        'CRICKET',
+        '-',
+        'LEICESTERSHIRE',
+        'TAKE',
+        'OVER',
+        'AT',
+        'TOP',
+        'AFTER',
+        'INNINGS',
+        'VICTORY',
+        '.'
+    ]
+    ev = conll_evaluate(seq,vzr=vzr,model=model)
+    print(ev)
+
+    with open('art.txt', 'a') as f:
+        ev = '\n' + str(ev)
+        f.write(ev)
+
+
 mlflow.set_experiment('BaldConll2003 Linear Decoder')
 with mlflow.start_run() as run:
 
     # params
     model_params = {
-        "num_cnns":3,
-        "kernel_size":3,
+        "num_cnns":5,
+        "kernel_size":5,
     }
 
     params = {
         "batch_size":64,
         "loss_fun":"cross-entropy",
         "optimizer":"Adam default",
-        "num_epochs":2,
+        "num_epochs":3,
     }
     for d in [model_params,params]:
         for param,val in d.items():
@@ -51,14 +74,18 @@ with mlflow.start_run() as run:
     dl = {}
     for key in ['train','validation','test']:
         ds[key] = NERDataset(data=conll[key],vzr=vzr)
-        shuffle = False if key == 'test' else True
+        # shuffle = False if key == 'test' else True
+        shuffle = False
         dl[key] = ds[key].get_dataloader(batch_size=params["batch_size"],shuffle=shuffle)
 
     criterium = ner_loss # modify these two to fetch from param
     optimizer = torch.optim.Adam(model.parameters())
 
+    train_step = 0
+    valid_step = 0
     for epoch in range(1,params["num_epochs"]+1):
         print(f"Epoch {epoch}.\n")
+
         # training loop
         print("Train.")
         model.train()
@@ -71,7 +98,15 @@ with mlflow.start_run() as run:
             loss = criterium(y_pred=y_pred,y_true=y_true)
             loss.backward()
             optimizer.step()
-            mlflow.log_metric('train_loss',loss.item())
+            mlflow.log_metric('train_loss',loss.item(),step=train_step)
+
+            score = conll_score(y_pred=y_pred,y_true=y_true)
+            mlflow.log_metric('train_score',score,step=train_step)
+ 
+            train_step += 1
+
+            log_this(vzr=vzr,model=model)
+            mlflow.log_artifact(artifact_path)
             
         # evaluation loop
         print("Valid.")
@@ -82,7 +117,12 @@ with mlflow.start_run() as run:
             y_pred = model(w=w,c=c)
             
             loss = criterium(y_pred=y_pred,y_true=y_true)
-            mlflow.log_metric('val_loss',loss.item())
+            mlflow.log_metric('val_loss',loss.item(),step=valid_step)
+
+            score = conll_score(y_pred=y_pred,y_true=y_true)
+            mlflow.log_metric('valid_score',score,step=valid_step)
+
+            valid_step += 1
     
 
 

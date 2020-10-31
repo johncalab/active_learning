@@ -3,9 +3,9 @@ import torch
 from torch import nn
 import torch.nn.functional as F
 
-from bald.convseq import ConvSeq
-from bald.chars import CharVocab, CharEncoder
-from bald.words import WordVocab, WordEncoder
+from .convseq import ConvSeq
+from .chars import CharVocab, CharEncoder
+from .words import WordVocab, WordEncoder
 
 class CNNEncoder(nn.Module):
     """

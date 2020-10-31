@@ -2,8 +2,8 @@ from typing import List, Dict
 import torch
 from torch.utils.data import Dataset
 
-from bald.chars import CharVocab
-from bald.words import WordVocab
+from .chars import CharVocab
+from .words import WordVocab
 
 class CharVectorizer:
 
@@ -20,8 +20,8 @@ class CharVectorizer:
         """
         return [self.word_to_char_ids(w) for w in word_seq]
 
-    def vectorize_pad(self,sent):
-        char_seq = self.vectorize(sent)
+    def vectorize_pad(self,word_seq):
+        char_seq = self.vectorize(word_seq)
         char_pad = self.vocab.pad_idx
         max_len = max(len(seq) for seq in char_seq)
         new_seq = []
@@ -48,3 +48,9 @@ class ConllVectorizer:
         c = self.char_vzr.vectorize_pad(seq)
         w = self.word_vzr.vectorize(seq)
         return {"char":c,"word":w}
+
+    @classmethod
+    def from_vectors(cls,vectors):
+        char_vocab = CharVocab()
+        word_vocab = WordVocab(vectors=vectors)
+        return cls(char_vocab=char_vocab,word_vocab=word_vocab)

@@ -1,7 +1,7 @@
-from bald.encoders import CNNEncoder
-from bald.decoders import LinearDecoder
-from bald.chars import CharVocab
-from bald.words import WordVocab
+from .encoders import CNNEncoder
+from .decoders import LinearDecoder
+from .chars import CharVocab
+from .words import WordVocab
 
 from torch import nn
 import torch.nn.functional as F
@@ -12,13 +12,13 @@ class BasicPaper(nn.Module):
         (b_len, seq_len)
         (b_len, seq_len, word_len)
 
-    output: (b_len,seq_len,num_tags)
+    output: (b_len,seq_len,num_labels)
     """
     def __init__(
         self,
         char_vocab: CharVocab,
         word_vocab: WordVocab,
-        num_tags: int,
+        num_labels: int,
         num_cnns: int,
         # char_num_cnns: int,
         # word_num_cnns: int,
@@ -56,7 +56,13 @@ class BasicPaper(nn.Module):
         )
 
         in_dim = 2*self.encoder.emb_dim
-        self.decoder = LinearDecoder(in_dim=in_dim,num_tags=num_tags)
+        self.decoder = LinearDecoder(in_dim=in_dim,num_labels=num_labels)
+
+    @classmethod
+    def from_vectorizer(cls,vzr,**kwargs):
+        char_vocab = vzr.char_vzr.vocab
+        word_vocab = vzr.word_vzr.vocab
+        return cls(char_vocab=char_vocab, word_vocab=word_vocab,**kwargs)
 
     def forward(self,w,c):
         """w is word tensor, c is char tensor"""
@@ -93,7 +99,7 @@ if __name__=="__main__":
         char_vocab=char_vocab,
         num_cnns=2,
         kernel_size=3,
-        num_tags=7,
+        num_labels=7,
     )
 
     for i,s in enumerate(dl):

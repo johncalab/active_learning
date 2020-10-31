@@ -1,9 +1,42 @@
 from typing import List, Dict
 import torch
-from torch.utils.data import Dataset
+from torch.utils.data import Dataset, DataLoader
 
-from bald.const import conll_encoding
-from bald.vectorizers import ConllVectorizer
+from .chars import CharVocab
+from .words import WordVocab
+from .const import conll_encoding
+from .vectorizers import ConllVectorizer
+
+class NERDataset(Dataset):
+    def __init__(
+        self,
+        data, # a hugging face dataset
+        vzr: ConllVectorizer,
+    ):
+        self.data = data
+        self.vzr = vzr
+
+        self.encoding = conll_encoding
+
+    def __len__(self):
+        return len(self.data)
+        
+    def __getitem__(self,i: int) -> dict:
+        sample = self.data[i]
+
+        tag_seq = sample["ner"]
+        tag_seq = [self.encoding[tag] for tag in tag_seq]
+        seq = sample["words"]
+        v = self.vzr.vectorize(seq)
+
+        return {"word":v["word"], "char":v["char"], "tag":tag_seq}
+
+    def get_dataloader(self,**kwargs):
+        return DataLoader(
+            dataset=self,
+            collate_fn = (lambda batch: collate_conll(batch=batch,word_pad=0,char_pad=0,tag_pad=0)),
+            **kwargs,
+        )
 
 class ConllDataset(Dataset):
     def __init__(

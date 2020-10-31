@@ -1,5 +1,5 @@
 conll_encoding = {
-    'O':0,
+    'O':5,
     'B-PER':1,
     'I-PER':1,
     'B-ORG':2,
@@ -11,9 +11,14 @@ conll_encoding = {
 }
 
 conll_decoding = {
-    0:'O',
+    5:'O',
     1:'PER',
     2:'ORG',
     3:'LOC',
     4:'MISC',
 }
+
+num_labels = len(conll_decoding)
+num_labels_with_pad = num_labels + 1
+
+assert len(set(conll_encoding.values())) == num_labels, 'Mismatch.'

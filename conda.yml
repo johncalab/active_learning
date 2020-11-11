@@ -1,0 +1,7 @@
+name: mlflowtraining
+channels:
+  - defaults
+dependencies:
+  - python=3.6
+  - pip:
+    - git+https://github.com/johncalab/active_learning

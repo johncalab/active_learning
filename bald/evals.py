@@ -11,7 +11,7 @@ def ner_loss(y_pred,y_true):
         input=y_pred,
         target=y_true,
         ignore_index=0,
-        weight = torch.tensor([0.0,10,10,10,10,1])
+        weight = torch.tensor([0,1,1,1,1,0.1])
     )
 
 def conll_evaluate(seq,vzr,model):

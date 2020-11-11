@@ -2,6 +2,8 @@
 .vectors
 .data
 .datasets
+**.ipynb
+mlruns
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

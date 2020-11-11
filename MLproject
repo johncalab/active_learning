@@ -1,5 +1,4 @@
-name: mlflowtraining
-conda_env: conda.yml
+name: neverendingproject
 entry_points:
   main:
-    command: "python mlflowtraining.py"
+    command: "python limoncello.py"

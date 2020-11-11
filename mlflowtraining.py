@@ -94,8 +94,8 @@ if __name__=='__main__':
         "num_epochs":3,
     }
 
-    mlflow.set_experiment('BaldConll2003 Linear Decoder')
     with mlflow.start_run() as run:
+        mlflow.set_experiment('BaldConll2003 Linear Decoder')
 
         # log params
         for d in [model_params,params]:

@@ -1,0 +1,5 @@
+name: mlflowtraining
+conda_env: conda.yml
+entry_points:
+  main:
+    command: "python mlflowtraining.py"

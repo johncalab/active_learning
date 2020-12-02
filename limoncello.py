@@ -3,6 +3,7 @@ from torchnlp.word_to_vector import GloVe
 import mlflow
 import torch
 from tqdm import tqdm
+import os
 from bald.vectorizers import ConllVectorizer
 from bald.datasets import NERDataset
 from bald.archs import BasicPaper
@@ -94,8 +95,9 @@ if __name__=='__main__':
         "num_epochs":3,
     }
 
+    # mlflow.set_experiment('BaldConll2003 Linear Decoder')
     with mlflow.start_run() as run:
-        mlflow.set_experiment('BaldConll2003 Linear Decoder')
+        
 
         # log params
         for d in [model_params,params]:

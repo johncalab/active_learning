@@ -1,4 +1,4 @@
 name: neverendingproject
 entry_points:
   main:
-    command: "python lemontesting.py"
+    command: "python limoncello.py"

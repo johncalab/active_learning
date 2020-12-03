@@ -100,8 +100,8 @@ if __name__=='__main__':
     conll = load_data(path=data_path,dataset_name=params['dataset_name'])
 
     # load vectors
-    vectors_path = '.vectors'
-    vectors = GloVe(cache=vectors_path)
+    # vectors_path = '.vectors'
+    vectors = GloVe()
 
     # mlflow.set_experiment('BaldConll2003 Linear Decoder')
     with mlflow.start_run() as run:

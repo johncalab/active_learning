@@ -95,6 +95,14 @@ if __name__=='__main__':
         "num_epochs":3,
     }
 
+    # load data
+    data_path = '.data/conll'
+    conll = load_data(path=data_path,dataset_name=params['dataset_name'])
+
+    # load vectors
+    vectors_path = '.vectors'
+    vectors = GloVe(cache=vectors_path)
+
     # mlflow.set_experiment('BaldConll2003 Linear Decoder')
     with mlflow.start_run() as run:
         
@@ -104,13 +112,6 @@ if __name__=='__main__':
             for param,val in d.items():
                 mlflow.log_param(param,val)
 
-        # load data
-        data_path = '.data/conll'
-        conll = load_data(path=data_path,dataset_name=params['dataset_name'])
-
-        # load vectors
-        vectors_path = '.vectors'
-        vectors = GloVe(cache=vectors_path)
 
         # make vectorizer
         vzr = ConllVectorizer.from_vectors(vectors=vectors)

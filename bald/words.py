@@ -2,7 +2,61 @@ import torch
 from torch import nn
 import torch.nn.functional as F
 
-from bald.convseq import ConvSeq
+from .vocab import VocabBase
+from .convseq import ConvSeq
+
+class WordVocabScratch(VocabBase):
+    def __init__(self,corpus):
+        """
+        Corpus is iterable of iterables, eg a matrix.
+        Each row is tokenized sentence, each entry is a token (word)
+        """
+        super().__init__()
+
+        for sent in corpus:
+            for tok in sent:
+                self.add_token(tok)
+
+class WordEncoderScratch(nn.Module):
+    """
+    Combine embeddings with CNN layers
+    input: (batch_len,seq_len)
+    output: (batch_len,seq_len,emb_dim)
+    """
+    def __init__(
+        self,
+        vocab,
+        embedding_dim,
+        num_cnns,
+        kernel_size,
+        add_residual=True,
+        dropout_p=0.0,
+    ):
+        super().__init__()
+
+        num_embeddings = len(vocab)
+        padding_idx = vocab.get_index(vocab.pad)
+        self.emb = nn.Embedding(
+            num_embeddings=num_embeddings,
+            embedding_dim=embedding_dim,
+            padding_idx=padding_idx,
+        )
+
+        self.cnns = ConvSeq(
+            in_dim=embedding_dim,
+            num_cnns=num_cnns,
+            kernel_size=kernel_size,
+            add_residual=add_residual,
+            dropout_p=dropout_p,
+        )
+
+    def forward(self,x):
+        x = self.emb(x)
+        x = F.relu(x)
+        x = self.cnns(x)
+        x = F.relu(x)
+        return x
+
 
 class WordVocab:
     def __init__(self,vectors):
@@ -105,6 +159,8 @@ class WordEncoder(nn.Module):
         x = F.relu(x)
         return x
 
+
+
 if __name__ == "__main__":
     # example 0
     from torchnlp.word_to_vector import GloVe
@@ -154,23 +210,3 @@ if __name__ == "__main__":
     print(x.size())
     x = m(x)
     print(x.size())
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

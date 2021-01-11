@@ -13,11 +13,11 @@ class ConvSeq(nn.Module):
     """
     def __init__(
         self,
-        in_dim,
-        num_cnns,
-        kernel_size,
-        add_residual=True,
-        dropout_p=0.0,
+        in_dim: int,
+        num_cnns: int,
+        kernel_size: int,
+        add_residual: bool=True,
+        dropout_p: float=0.0,
         ):
         """
         We have stride 1, dilation 1.

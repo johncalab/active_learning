@@ -2,55 +2,59 @@ from typing import List, Dict
 import torch
 from torch.utils.data import Dataset
 
+from .vocab import NERTagVocab
 from .chars import CharVocab
-from .words import WordVocab
+from .words import WordVocab, WordVocabScratch
 
-class CharVectorizer:
-
-    def __init__(self,vocab:CharVocab):
+class VectorizerBase:
+    def __init__(self,vocab):
         self.vocab = vocab
 
-    def word_to_char_ids(self, word: str) -> List[str]:
-        return [self.vocab.get_index(c) for c in word]
+    def vectorize_sequence(self,seq):
+        return [self.vocab.get_index(tok) for tok in seq]
 
-    def vectorize(self,word_seq: List[str]) -> List[int]:
-        """
-        word_seq is a list of strings
-        (so already tokenized)
-        """
-        return [self.word_to_char_ids(w) for w in word_seq]
+    def vectorize_batch(self,batch):
+        return [self.vectorize_sequence(seq) for seq in batch]
 
-    def vectorize_pad(self,word_seq):
-        char_seq = self.vectorize(word_seq)
-        char_pad = self.vocab.pad_idx
-        max_len = max(len(seq) for seq in char_seq)
-        new_seq = []
-        for seq in char_seq:
+    def vectorize_and_pad_batch(self,batch):
+        max_len = max(len(seq) for seq in batch)        
+        pad_idx = self.vocab.pad_idx
+        unpadded = self.vectorize_batch(batch)
+        padded = []
+        for seq in unpadded:
             remainder = max_len - len(seq)
-            new_seq.append(seq[:]+([char_pad]*remainder))
-        return new_seq
+            padded.append(seq[:]+([pad_idx]*remainder))
 
-class WordVectorizer:
+        return padded
 
-    def __init__(self,vocab:WordVocab):
-        self.vocab = vocab
-        
-    def vectorize(self,word_seq:List[str])->List[int]:
-        return [self.vocab.get_index(w) for w in word_seq]
-
-class ConllVectorizer:
-
-    def __init__(self,char_vocab,word_vocab):
-        self.char_vzr = CharVectorizer(char_vocab)
-        self.word_vzr = WordVectorizer(word_vocab)
-
-    def vectorize(self,seq):
-        c = self.char_vzr.vectorize_pad(seq)
-        w = self.word_vzr.vectorize(seq)
-        return {"char":c,"word":w}
-
+class WordVectorizer(VectorizerBase):
     @classmethod
-    def from_vectors(cls,vectors):
-        char_vocab = CharVocab()
-        word_vocab = WordVocab(vectors=vectors)
-        return cls(char_vocab=char_vocab,word_vocab=word_vocab)
+    def from_corpus(cls,corpus):
+        vocab = WordVocabScratch(corpus)
+        return cls(vocab=vocab)
+
+class CharVectorizer(VectorizerBase):
+
+    def vectorize_sequence(self,seq):
+        return [[self.vocab.get_index(c) for c in tok] for tok in seq]
+
+    def vectorize_and_pad_batch(self,batch):
+        max_len = max(len(char_seq) for seq in batch for char_seq in seq)
+        pad_idx = self.vocab.pad_idx
+        unpadded = self.vectorize_batch(batch)
+        padded = []
+        for seq in unpadded:
+            padded_char_seqs = []
+            for char_seq in seq:
+                remainder = max_len - len(char_seq)
+                padded_char_seqs.append(char_seq[:]+([pad_idx]*remainder))
+
+            padded.append(padded_char_seqs)
+
+        return padded
+
+
+class NERTagVectorizer(VectorizerBase):
+    def __init__(self,tag_encoding,tag_decoding):
+        self.vocab = NERTagVocab(tag_encoding=tag_encoding,tag_decoding=tag_decoding)
+        self.vocab.pad_idx = 0

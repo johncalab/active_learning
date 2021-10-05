@@ -55,8 +55,8 @@ class CharEncoder(nn.Module):
         num_cnns: int,
         kernel_size: int,
         padding_idx: int = None,
-        add_residual: bool =True,
-        dropout_p: float =0.0,
+        add_residual: bool = True,
+        dropout_p: float = 0.0,
     ):
         super().__init__()
 

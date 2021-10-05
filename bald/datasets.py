@@ -26,5 +26,6 @@ def conll_collate_batch(batch,char_vzr,word_vzr,tag_vzr):
 
     char_batch = char_vzr.vectorize_and_pad_batch(word_batch)
     word_batch = word_vzr.vectorize_and_pad_batch(word_batch)
+    tag_batch = tag_vzr.vectorize_and_pad_batch(tag_batch)
 
-    return {'char':char_batch,'word':word_batch}
+    return {'char':char_batch,'word':word_batch, 'tag':tag_batch}

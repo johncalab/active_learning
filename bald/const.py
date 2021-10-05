@@ -1,3 +1,17 @@
+conll_tags = {
+    'O':0,
+    'B-PER':1,
+    'I-PER':2,
+    'B-ORG':3,
+    'I-ORG':4,
+    'B-LOC':5,
+    'I-LOC':6,
+    'B-MISC':7,
+    'I-MISC':8,
+}
+
+conll_reverse_tags = {value:key for key,value in conll_tags.items()}
+
 conll_encoding = {
     'O':5,
     'B-PER':1,

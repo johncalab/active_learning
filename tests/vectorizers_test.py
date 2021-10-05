@@ -41,10 +41,12 @@ def test_char():
     vzr = CharVectorizer(vocab)
 
     seq = ["I","have","money"]
-    char_seq = [["I"],['h','a','v','e'],['m','o','n','e','y']]
-    vectorized = [[vocab.get_index(c) for c in tok] for tok in seq]
-
-    assert vectorized == vzr.vectorize_sequence(seq)
+    vectorized = [
+        [vocab.get_index(c) for c in ['I','<PAD>','<PAD>','<PAD>','<PAD>']],
+        [vocab.get_index(c) for c in ['h','a','v','e','<PAD>']],
+        [vocab.get_index(c) for c in ['m','o','n','e','y']],
+    ]
+    assert vectorized == vzr.vectorize_and_pad_batch([seq])[0]
 
 def test_char_batch(corpus):
     vocab = CharVocab()
@@ -59,7 +61,11 @@ def test_char_batch(corpus):
         ['h','a','v','e','<PAD>','<PAD>','<PAD>'],
         ['m','o','n','e','y','<PAD>','<PAD>'],
     ]
-    char_seq_2 = [['h','e','l','p','i','n','g']]
+    char_seq_2 = [
+        ['h','e','l','p','i','n','g'],
+        ['<PAD>','<PAD>','<PAD>','<PAD>','<PAD>','<PAD>','<PAD>'],
+        ['<PAD>','<PAD>','<PAD>','<PAD>','<PAD>','<PAD>','<PAD>'],
+    ]
     vectorized = [[[vocab.get_index(c) for c in c_seq] for c_seq in seq] for seq in [char_seq_1,char_seq_2]]
 
     assert vectorized == vzr.vectorize_and_pad_batch(batch)

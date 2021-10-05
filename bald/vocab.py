@@ -40,6 +40,7 @@ class NERTagVocab(VocabBase):
     def __init__(self,tag_encoding,tag_decoding):
         self.token_to_index = tag_encoding
         self.index_to_token = tag_decoding
+        self.pad_idx = 0
 
     def add_token(self):
         raise NotImplementedError("This method is disabled for this subclass.")
